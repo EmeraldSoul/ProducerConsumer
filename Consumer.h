@@ -7,20 +7,20 @@ class Consumer
 {
 public:
 	Consumer(Buffer& buffer)
-		: buffer_(buffer)
+		: buffer(buffer)
 	{}
 	void run(string name) {
 		while (true) {
-			Cuisine& num = buffer_.remove();
-			buffer_.lock();
+			Cuisine& num = buffer.remove();
+			buffer.lock();
 			uint32_t val = num.consume();
 			cout << name << ": Remaining: " << val << endl;
-			cout << name << ": Size of deque: " << buffer_.size() << endl;
+			cout << name << ": Size of vector: " << buffer.size() << endl;
 			std::this_thread::sleep_for(std::chrono::milliseconds(500));
-			buffer_.unlock();
+			buffer.unlock();
 		}
 	}
 
 private:
-	Buffer&  buffer_;
+	Buffer&  buffer;
 };

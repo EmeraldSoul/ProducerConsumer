@@ -1,10 +1,8 @@
 #pragma once
 
-
-#include "PC.h"
 #include "Cuisine.h"
 
-using std::deque;
+using std::vector;
 using namespace std;
 
 class Buffer
@@ -13,8 +11,8 @@ public:
 	void add(Cuisine& val) {
 		while (true) {
 			std::unique_lock<std::mutex> locker(mu);
-			cond.wait(locker, [this]() {return buffer_.size() < size_; });
-			buffer_.push_back(val);
+			cond.wait(locker, [this]() {return buffer.size() < size_; });
+			buffer.push_back(val);
 			locker.unlock();
 			cond.notify_all();
 			return;
@@ -25,9 +23,9 @@ public:
 		while (true)
 		{
 			std::unique_lock<std::mutex> locker(mu);
-			cond.wait(locker, [this]() {return buffer_.size() > 0; });
-			Cuisine back = buffer_.back();
-			buffer_.pop_back();
+			cond.wait(locker, [this]() {return buffer.size() > 0; });
+			Cuisine back = buffer.back();
+			buffer.pop_back();
 			locker.unlock();
 			cond.notify_all();
 			return back;
@@ -46,17 +44,14 @@ public:
 
 	uint32_t size()
 	{
-		return (buffer_.size() + 1);
+		return (buffer.size() + 1);
 	}
 
 	Buffer() {}
 
 private:
-	// Add them as member variables here
 	std::mutex mu;
 	std::condition_variable cond;
-
-	// Your normal variables here
-	deque<Cuisine> buffer_;
+	vector<Cuisine> buffer;
 	const unsigned int size_ = 10;
 };
