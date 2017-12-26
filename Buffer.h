@@ -1,14 +1,25 @@
 #pragma once
 
-#include "Cuisine.h"
+#include <iostream>
+#include <list>
+#include <stdint.h>
+#include <condition_variable>
+#include <mutex>
 
-using std::vector;
+#include "PC.h"
+#include "Utils.h"
+#include "Cuisine.h"
+#include "MealBuilder.h"
+
+using std::list;
+using std::mutex;
+using std::condition_variable;
 using namespace std;
 
 class Buffer
 {
 public:
-	void add(Cuisine& val) {
+	void add(int val) {
 		while (true) {
 			std::unique_lock<std::mutex> locker(mu);
 			cond.wait(locker, [this]() {return buffer.size() < size_; });
@@ -19,17 +30,28 @@ public:
 		}
 	}
 
-	Cuisine remove() {
+	int remove() {
 		while (true)
 		{
 			std::unique_lock<std::mutex> locker(mu);
 			cond.wait(locker, [this]() {return buffer.size() > 0; });
-			Cuisine back = buffer.back();
+			int back = buffer.back();
 			buffer.pop_back();
 			locker.unlock();
 			cond.notify_all();
 			return back;
 		}
+	}
+
+	bool checkTypeExists(int type)
+	{
+		for (auto& b : buffer)
+		{
+			if (b == type)
+				return true;
+		}
+
+		return false;
 	}
 
 	void lock()
@@ -44,7 +66,7 @@ public:
 
 	uint32_t size()
 	{
-		return (buffer.size() + 1);
+		return (buffer.size());
 	}
 
 	Buffer() {}
@@ -52,6 +74,6 @@ public:
 private:
 	std::mutex mu;
 	std::condition_variable cond;
-	vector<Cuisine> buffer;
+	list<int> buffer;
 	const unsigned int size_ = 10;
 };
